@@ -1,0 +1,157 @@
+---
+title: "The probout Package"
+date: "August 18, 2017"
+output:
+
+  html_document:
+
+    smart: false
+vignette: >
+  %\VignetteIndexEntry{The probout Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+# Introduction
+
+Outliers are observations within a dataset that seem not to belong with the rest of the data. They could be caused, for example, by spurious entries that need to be eliminated before further analysis, or by hard-to-detect signals of interest in their own right.
+
+The **probout** package provides unsupervised estimates of the probability of outlyingness for observations, based largely on separation in terms of distance. It is intended for multivariate numeric data with large numbers of sequentially accessible observations. The dimensionality of the data should not be too large, so that distances between individual observations can be computed efficiently.
+
+The method relies on leader clustering \cite{Hartigan1975} to reduce the size of the data in an initial phase. Leader clustering partitions the data into groups that are within a user-specified radius $\rho$ of *leader* observations. The leader observations are those that are not within $\rho$ of an existing leader as the data is processed sequentially. The leader observations, and hence the associated groups, will typically vary with the order of the data. By default,
+the data is normalized through min-max scaling, in which each variable is mapped to the unit interval.
+
+After leader clustering, an outlier probability is determined for each group, based on the group centroids and data simulated from a mixture model defined by the group proportions, centroids, and variances, accumulated as the data is processed sequentially. The centroids are included to ensure representation of any groups with proportions so small that it would be unlikely that a simulated observation would be drawn from those groups. 
+
+# Criteria for Outlyingness
+
+**probout** estimates outlier probabilities by fitting an exponential
+distribution to a nonparametric outlier statistic from robust statistics.
+This statistic is essentially a robust $z$-score: for each
+observation, the median is subtracted and the absolute value of the result
+is divided by the median absolute deviation (MAD). 
+For multivariate data, the univariate statistic is repeatedly computed for
+many random projections of the data, and the maximum value is retained
+as the value of the multvariare statistic. 
+Outliers correspond to unusually large values of the outlier statistic.
+
+# Example
+
+## Example data
+
+We use the 100, 400, 1500 meter timings from the *Decathlon*
+dataset from CRAN package **GDAdata**.
+
+```{r, eval = TRUE, message = FALSE}
+ require(GDAdata)
+
+ data(Decathlon)
+ 
+ x <- Decathlon[,c("m100","m400","m1500")]
+```
+
+A projection of the data onto the first and third coordinates 
+can be produced as follows:
+```{r, fig.height = 7, fig.width = 7}
+plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings", 
+     main = "", pch = 16, cex = .5)
+```
+
+## Leader clustering
+
+To obtain outlier probabilities, first apply leader clustering:
+
+```{r, message = FALSE}
+  require(probout)
+  require(FNN)
+```
+
+```{r, eval = TRUE}
+lead <- leader(x)
+```
+The *leader* function produces a list of leader clusterings for each radius
+supplied as a argument. The default is to compute the leader clustering for
+a single radius, which corresponds to the default radius 
+$0.1 ~ / ~ log(n)^{(1/p)}$
+from Wilkinson, ``Visualizing Outliers'', Dept of Computer Science, U of
+Illinois at Chicago (2016)
+--- the same as in the **HDoutliers** package.
+A plot of the leaders can be produced as follows:
+```{r, fig.height = 7, fig.width = 7}
+plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings", 
+     main = "leader observations (blue)", pch = 16, cex = .5)
+leads <- lead[[1]]$leaders
+points(x[leads,1],x[leads,3],pch="+",cex=1.5,col="dodgerblue")
+```
+Probability of outlyingness for the leader partitions can be estimated
+through an exponential fit to an outlier statistic to data simulated from
+the partition proportions, centroids, and variances (function \verb|simData|).
+The process is repeated for a number of simulations:
+```{r, echo = FALSE, message = FALSE}
+  require(mclust)
+  require(MASS)
+```
+
+```{r, eval = TRUE}
+ntimes <- 100
+P <- matrix( NA, length(leads), ntimes)
+for (i in 1:ntimes) {
+   P[,i] <- partProb( simData(lead[[1]]), method = "distance")
+}
+pprobs <- apply( P, 1, median)
+```
+Here we've used the ```"distance"``` option for the outlier method;
+other options are available.
+To show the leaders with estimated outlier probability greater than $.95$:
+```{r, fig.height = 7, fig.width = 7}
+thresh <- .95
+plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings", 
+     main = "leaders: outlier prob > .95 red else blue", pch = 16, cex = .5)
+out <- leads[pprobs > thresh]
+points(x[leads,1],x[leads,3],pch="+",cex=1.5,col="dodgerblue")
+points(x[out,1],x[out,3],pch="*",cex=1.5,col="red")
+```
+We now obtain outlier probabilities for all of the data:
+```{r, eval = TRUE}
+probs <- allProb(lead[[1]],pprobs)
+```
+```{r, fig.height = 7, fig.width = 7}
+plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings", 
+     main = "outlier prob > .95 (red)", pch = 16, cex = .5)
+out <- (1:nrow(x))[probs > thresh]
+points(x[out,1],x[out,3],pch=1,col="red")
+```
+
+# Parameter Tuning
+
+While **probout** is written as a general tool for estimating 
+outlier probabilities, we expect it to be most 
+useful when tuned to specific applications.
+Probability estimates can vary with parameter settings, and
+parameters can often be effectively tuned via profiling.
+Here is an example involving adjusting the number of simulations until 
+a value is reached after which the estimates remain stable.
+For this example, at least 8,000 simulations should be used to achieve this,
+given the other parameter settings.
+
+```{r, eval = TRUE}
+nsim <-	 (1:15)*1000
+nleads <- length(leads)
+ntimes <- 100
+
+P <- array( NA, c(nleads, length(nsim), ntimes))
+dimnames(P) <- list(NULL, nsim, NULL)
+
+for (i in 1:ntimes) {
+   for (j in seq(along = nsim)) {
+      P[,j,i] <- partProb( simData(lead[[1]], nsim[j]), method = "distance")
+   }
+}
+probs <- apply( P, c(1,2), median)
+```
+```{r, fig.height = 7, fig.width = 7}
+plot( nsim, sample(range(probs),size=length(nsim),replace=T), ylim = c(.90,1),
+ type="n", xlab = "# simulated observations", ylab = "leader group probability")
+dummy <- apply( probs, 1, function(p) lines(nsim,p))
+abline( v = 8000, lty = 2)
+```

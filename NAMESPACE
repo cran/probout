@@ -1,0 +1,16 @@
+useDynLib(probout,.registration=TRUE)
+
+export(leader)
+export(LWradius)
+export(simData)
+export(OutlierStatistic)
+export(logdens)
+export(partProb)
+export(allProb)
+
+import(FNN)
+import(mclust)
+import(MASS)
+
+importFrom( "stats", "median", "pexp", "rnorm")
+
