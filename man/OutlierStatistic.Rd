@@ -40,11 +40,11 @@ fit to the outlier statistic, rather than from the empirical distribution
 of the outlier statistic.
 }
 \section{References}{
- W. A. Stahel, \emph{Breakdown of Covariance Estimators}, PhD thesis,
+ W. A. Stahel, \emph{Breakdown of Covariance Estimators}, doctoral thesis,
  Fachgruppe Fur Statistik, Eidgenossische Technische Hochshule (ETH), 1981.
 
  D. L. Donoho, \emph{Breakdown Properties of Multivariate Location Estimators},
- PhD thesis, Department of Statistics, Harvard University, 1982.
+ doctoral thesis, Department of Statistics, Harvard University, 1982.
 }
 \seealso{
   \code{\link{partProb}}

@@ -1,6 +1,6 @@
 ---
 title: "The probout Package"
-date: "August 18, 2017"
+date: "November 7, 2017"
 output:
 
   html_document:
@@ -18,7 +18,7 @@ Outliers are observations within a dataset that seem not to belong with the rest
 
 The **probout** package provides unsupervised estimates of the probability of outlyingness for observations, based largely on separation in terms of distance. It is intended for multivariate numeric data with large numbers of sequentially accessible observations. The dimensionality of the data should not be too large, so that distances between individual observations can be computed efficiently.
 
-The method relies on leader clustering \cite{Hartigan1975} to reduce the size of the data in an initial phase. Leader clustering partitions the data into groups that are within a user-specified radius $\rho$ of *leader* observations. The leader observations are those that are not within $\rho$ of an existing leader as the data is processed sequentially. The leader observations, and hence the associated groups, will typically vary with the order of the data. By default,
+The method relies on leader clustering (Hartigan,1975) to reduce the size of the data in an initial phase. Leader clustering partitions the data into groups that are within a user-specified radius $\rho$ of *leader* observations. The leader observations are those that are not within $\rho$ of an existing leader as the data is processed sequentially. The leader observations, and hence the associated groups, will typically vary with the order of the data. By default,
 the data is normalized through min-max scaling, in which each variable is mapped to the unit interval.
 
 After leader clustering, an outlier probability is determined for each group, based on the group centroids and data simulated from a mixture model defined by the group proportions, centroids, and variances, accumulated as the data is processed sequentially. The centroids are included to ensure representation of any groups with proportions so small that it would be unlikely that a simulated observation would be drawn from those groups. 
@@ -26,13 +26,14 @@ After leader clustering, an outlier probability is determined for each group, ba
 # Criteria for Outlyingness
 
 **probout** estimates outlier probabilities by fitting an exponential
-distribution to a nonparametric outlier statistic from robust statistics.
+distribution to a nonparametric outlier statistic from robust statistics
+(Stahel 1981, Donoho 1982).
 This statistic is essentially a robust $z$-score: for each
 observation, the median is subtracted and the absolute value of the result
 is divided by the median absolute deviation (MAD). 
 For multivariate data, the univariate statistic is repeatedly computed for
 many random projections of the data, and the maximum value is retained
-as the value of the multvariare statistic. 
+as the value of the multvariate statistic. 
 Outliers correspond to unusually large values of the outlier statistic.
 
 # Example
@@ -73,9 +74,8 @@ The *leader* function produces a list of leader clusterings for each radius
 supplied as a argument. The default is to compute the leader clustering for
 a single radius, which corresponds to the default radius 
 $0.1 ~ / ~ log(n)^{(1/p)}$
-from Wilkinson, ``Visualizing Outliers'', Dept of Computer Science, U of
-Illinois at Chicago (2016)
---- the same as in the **HDoutliers** package.
+from Wilkinson (2016)
+--- the same as in the **HDoutliers** package (Fraley 2016).
 A plot of the leaders can be produced as follows:
 ```{r, fig.height = 7, fig.width = 7}
 plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings", 
@@ -83,6 +83,7 @@ plot(x[,1], x[,3], xlab = "100 meter timings", ylab = "1500 meter timings",
 leads <- lead[[1]]$leaders
 points(x[leads,1],x[leads,3],pch="+",cex=1.5,col="dodgerblue")
 ```
+
 Probability of outlyingness for the leader partitions can be estimated
 through an exponential fit to an outlier statistic to data simulated from
 the partition proportions, centroids, and variances (function \verb|simData|).
@@ -111,6 +112,7 @@ out <- leads[pprobs > thresh]
 points(x[leads,1],x[leads,3],pch="+",cex=1.5,col="dodgerblue")
 points(x[out,1],x[out,3],pch="*",cex=1.5,col="red")
 ```
+
 We now obtain outlier probabilities for all of the data:
 ```{r, eval = TRUE}
 probs <- allProb(lead[[1]],pprobs)
@@ -155,3 +157,30 @@ plot( nsim, sample(range(probs),size=length(nsim),replace=T), ylim = c(.90,1),
 dummy <- apply( probs, 1, function(p) lines(nsim,p))
 abline( v = 8000, lty = 2)
 ```
+
+# Bibiliography
+
+J. Hartigan (1975), Clustering Algorithms, Wiley.
+
+W. A. Stahel (1981),  Breakdown of Covariance Estimators, 
+       doctoral thesis, Fachgruppe fur Statistik,
+       Eidgenossische Technische Hochschule (ETH)
+
+D. L. Donoho (1982), Breakdown Properties of Multivariate Location Estimators,
+    doctoral thesis, Department of Statistics, Harvard University
+
+L. Wilkinson (2016), Visualizing Outliers, Department of Computer Science,
+   University of Illinois at Chicago (2016)  
+   https://www.cs.uic.edu/~wilkinson/Publications/outliers.pdf
+
+C. Fraley (2016), HDoutliers: Leland Wilkinson's Algorithm for
+     Detecting Multidimensional Outliers (R package available on CRAN)
+https://cran.r-project.org/package=HDoutliers
+
+
+
+
+
+
+
+

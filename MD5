@@ -1,4 +1,5 @@
-7109efbe0da857c228b0b206d60e000e *DESCRIPTION
+eeae17d43de0534ffd8074269b2a9d2e *CHANGELOG
+d3cfb4c83cb01d3ce6ee1d19effc80e0 *DESCRIPTION
 27def40617a64ab78d3f6fc4d0c8614b *LICENSE
 8fe1214d676899c9fe84ddc37cbb0224 *NAMESPACE
 def314e30941bbd9382c7a40eb0b7541 *R/LWradius.R
@@ -10,10 +11,10 @@ b3bc64373dfd6d2beafe5168b2250a4b *R/logdens.R
 d254b02101689bb4fb0b2f27438e9864 *R/simData.R
 b5bec6bd1c3f7464a403d7e21e944330 *build/vignette.rds
 9b108cfe349efd414a7443388c6d3d63 *inst/doc/probout.R
-2fe6506e6474c9391fa23231639f0981 *inst/doc/probout.Rmd
-fdd7c150c5850a12a70ba569f034862b *inst/doc/probout.html
+115d729323be8d9b8dbe8f451df559c1 *inst/doc/probout.Rmd
+70e9dc7daebd6d5e869f2c73c8f891b0 *inst/doc/probout.html
 0509fd9772ee794bfa1f6cc722c7e762 *man/LWradius.Rd
-d18f66537703fb28bd9e46038abb849a *man/OutlierStatistic.Rd
+9ec1e77c3fef9185aa8bef5d40014866 *man/OutlierStatistic.Rd
 1215f4c3479474cd6fac0f795226db63 *man/allProb.Rd
 15c6ab9101ac5499517d49e85de171d1 *man/leader.Rd
 45365e82ecd953f5d9b8116002d5798a *man/logdens.Rd
@@ -22,4 +23,4 @@ c18fe4f04fd97abb04c072c3c84e05e0 *man/partProb.Rd
 2a6f9e9e044a78154d3cfda5936d6f48 *src/Makevars
 aef1127eb051ea29a598b10c2266721c *src/init.c
 015816e07d45966d007a3865244091f2 *src/logden.f
-2fe6506e6474c9391fa23231639f0981 *vignettes/probout.Rmd
+115d729323be8d9b8dbe8f451df559c1 *vignettes/probout.Rmd
